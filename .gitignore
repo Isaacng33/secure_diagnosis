@@ -1,0 +1,9 @@
+# Ignore VM
+venv/
+.venv/
+
+# Ignore Python Bytecode
+__pycache__/
+
+# Ignore Data Folder
+data/
