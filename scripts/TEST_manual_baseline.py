@@ -27,9 +27,7 @@ def create_feature_vector(input_symptoms):
 
 # Get User input
 input_symptoms = [
-    'anxiety and nervousness', 
-    'depression', 
-    'shortness of breath', 
+    'depression',
     'depressive or psychotic symptoms']
 
 input_vector = create_feature_vector(input_symptoms)

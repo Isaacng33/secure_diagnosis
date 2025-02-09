@@ -6,3 +6,6 @@ seaborn
 concrete-ml
 spacy
 joblib
+negspacy
+pyspellchecker
+medspacy
