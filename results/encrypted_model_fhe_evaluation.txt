@@ -1,8 +1,8 @@
 FHE Evaluation Metrics for Encrypted Model:
 -----------------------------------------------
-Training Time      : 504.8652 seconds
-Prediction Time    : 14657.2756 seconds
-Memory Usage       : 3020.10 MB
+Training Time      : 543.9588 seconds
+Prediction Time    : 17657.8222 seconds
+Memory Usage       : 3029.93 MB
 Accuracy           : 0.8655
 Precision          : 0.8735
 Recall             : 0.8655
