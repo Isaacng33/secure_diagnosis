@@ -4,8 +4,11 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 from concrete.ml.deployment import FHEModelClient, FHEModelServer
+from concrete.ml.common.serialization.loaders import load
 
-model = joblib.load('./models/evaluation_plaintext_encrypted_model.pkl')
+fhe_model_path = Path('./models/evaluation_fhe_encrypted_model.json')
+with fhe_model_path.open('r') as f:
+    model = load(f)
 le = joblib.load('./models/label_encoder.pkl')
 symptom_columns = joblib.load('./models/symptom_columns.pkl')
 

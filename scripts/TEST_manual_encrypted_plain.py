@@ -26,14 +26,7 @@ def create_feature_vector(input_symptoms):
     return pd.DataFrame([feature_dict])
 
 # Get User input
-input_symptoms = [
-    'anxiety and nervousness', 
-    'depression', 
-    'shortness of breath', 
-    'depressive or psychotic symptoms', 
-    'dizziness', 
-    'insomnia', 
-    'palpitations']
+input_symptoms = ['abnormal involuntary movements', 'anxiety and nervousness', 'fever', 'depression']
 
 input_vector = create_feature_vector(input_symptoms)
 
