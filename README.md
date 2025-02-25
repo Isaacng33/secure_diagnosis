@@ -8,7 +8,7 @@ The project includes three models:
 - **Plaintext Logistic Regression:**  
   A baseline model trained on structured symptom data.
 - **Encrypted Plaintext Logistic Regression:**  
-  A model that demonstrates how data can be encrypted while still being processed in plaintext.
+  A model that can take in plaintext but its train on encrypted data
 - **FHE Inference Model:**  
   A compiled FHE model (using Concrete ML) that performs inference on encrypted inputs.
 
