@@ -7,17 +7,39 @@ from nlp_pipeline import nlp
 from concrete.ml.common.serialization.loaders import load
 
 class FHEMedicalClient:
-    def __init__(self, session_id):
+    def __init__(self, session_id, model_type):
+        """
+        Initialize the FHEMedicalClient with a session ID and model type.
+        
+        Args:
+            session_id (str): Unique identifier for the session.
+            model_type (str): Type of model to use ('LR' for Logistic Regression, 'XGB' for XGBoost).
+        """
         self.session_id = session_id
+        if model_type =='LR':
+            self.path_dir = Path('/home/isaacng33/individual_project/flask_app/artifacts/encrypted/LR/')
+        elif model_type == 'XGB':
+            self.path_dir = Path('/home/isaacng33/individual_project/flask_app/artifacts/encrypted/XGB/')
+        else:
+            raise ValueError("Unsupported model type. Use 'LR' or 'XGB'.")
+        
+        # Initialize FHEModelClient
         self.client = FHEModelClient(
-            path_dir=Path('/home/isaacng33/individual_project/flask_app/artifacts/encrypted/LR'),
+            path_dir=self.path_dir,
             key_dir=Path(f'/home/isaacng33/individual_project/flask_app/artifacts/client_keys/{session_id}')
         )
         os.makedirs(f'/home/isaacng33/individual_project/flask_app/artifacts/client_keys/{session_id}', exist_ok=True)
         self.symptom_columns = joblib.load('/home/isaacng33/individual_project/flask_app/artifacts/symptom_columns.pkl')
         self.le = joblib.load('/home/isaacng33/individual_project/flask_app/artifacts/label_encoder.pkl')
-        fhe_model_path = Path('/home/isaacng33/individual_project/flask_app/artifacts/models/compiled_lr_model.json')
-        with fhe_model_path.open('r') as f:
+
+        # Load model class labels
+        if model_type == 'LR':
+            self.class_labels_path = '/home/isaacng33/individual_project/flask_app/artifacts/models/compiled_lr_model.json'
+        elif model_type == 'XGB':
+            self.class_labels_path = '/home/isaacng33/individual_project/flask_app/artifacts/models/compiled_xgb_model.json'
+
+        self.class_lables = Path(self.class_labels_path)
+        with self.class_lables.open('r') as f:
             self.model = load(f)
 
     def load_eval_keys(self):

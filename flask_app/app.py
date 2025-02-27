@@ -32,7 +32,7 @@ def init_session():
         session_id = base64.urlsafe_b64encode(os.urandom(16)).decode('utf-8')
         session['session_id'] = session_id
         
-        client = FHEMedicalClient(session_id)
+        client = FHEMedicalClient(session_id, 'LR')
         client.load_eval_keys()
             
         return jsonify({'session_id': session_id}), 200
@@ -50,7 +50,7 @@ def predict():
             return jsonify({'error': 'Invalid session'}), 401
             
         # Load evaluation keys
-        client = FHEMedicalClient(session_id)
+        client = FHEMedicalClient(session_id, 'LR')
         eval_keys = client.load_eval_keys()
 
         # Get and validate encrypted data
