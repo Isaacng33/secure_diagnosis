@@ -16,8 +16,8 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB limit
 try:
     # Initialize FHE Server first
     logger.info("Attempting to load FHE Server...")
-    server = FHEModelServer('/home/isaacng33/individual_project/flask_app/artifacts/encrypted')
-    server.load()
+    lr_server = FHEModelServer('/home/isaacng33/individual_project/flask_app/artifacts/encrypted/LR')
+    lr_server.load()
     logger.info("FHE Server loaded successfully")
     
 except Exception as e:
@@ -60,7 +60,7 @@ def predict():
         encrypted_data = base64.b64decode(request.json['encrypted_data'])
         
         # Execute FHE inference
-        encrypted_result = server.run(encrypted_data, eval_keys)
+        encrypted_result = lr_server.run(encrypted_data, eval_keys)
         
         return jsonify({
             'encrypted_result': base64.b64encode(encrypted_result).decode('utf-8')

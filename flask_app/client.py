@@ -25,7 +25,7 @@ def test_full_workflow():
         print(f"✅ Session initialized. Session ID: {session_id[:8]}...")
 
         # 2. Create client instance
-        client = FHEMedicalClient("cxjz2vs1jXMvYDOapBp6lw==")
+        client = FHEMedicalClient(session_id)
         
         # 3. Test NLP processing and encryption
         print("\n=== Testing NLP Processing and Encryption ===")

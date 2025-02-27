@@ -10,3 +10,4 @@ negspacy
 pyspellchecker
 medspacy
 flask
+xgboost

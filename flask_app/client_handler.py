@@ -10,13 +10,13 @@ class FHEMedicalClient:
     def __init__(self, session_id):
         self.session_id = session_id
         self.client = FHEModelClient(
-            path_dir=Path('/home/isaacng33/individual_project/flask_app/artifacts/encrypted'),
+            path_dir=Path('/home/isaacng33/individual_project/flask_app/artifacts/encrypted/LR'),
             key_dir=Path(f'/home/isaacng33/individual_project/flask_app/artifacts/client_keys/{session_id}')
         )
         os.makedirs(f'/home/isaacng33/individual_project/flask_app/artifacts/client_keys/{session_id}', exist_ok=True)
         self.symptom_columns = joblib.load('/home/isaacng33/individual_project/flask_app/artifacts/symptom_columns.pkl')
         self.le = joblib.load('/home/isaacng33/individual_project/flask_app/artifacts/label_encoder.pkl')
-        fhe_model_path = Path('/home/isaacng33/individual_project/flask_app/artifacts/evaluation_fhe_encrypted_model.json')
+        fhe_model_path = Path('/home/isaacng33/individual_project/flask_app/artifacts/models/compiled_lr_model.json')
         with fhe_model_path.open('r') as f:
             self.model = load(f)
 

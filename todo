@@ -1,0 +1,17 @@
+1. Build Frontend UI for side by side comparison
+    Compare Plaintext vs. Encrypted Inference
+    Viewing Ciphertext on UI
+    View Graphs of Latency/Execution Time
+        Time to encrypt feature vector
+        Time to perform the encrypted inference
+        Time to decrypt result
+        Plaintext inference time
+    Output Comparsion
+        Disease predictions from all models (top-k diseases + probability)
+2. Exploring multiple ML methods compataible iwth the dataset
+    XGBoost
+    Neural Network
+    
+3. Model Intepretability
+    Showcase the feature coefficients to show which symptom influence the prediction
+    to get Top contributing key symptoms
