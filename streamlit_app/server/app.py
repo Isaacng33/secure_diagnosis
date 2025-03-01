@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, jsonify
 import logging
 import base64
 import os
@@ -8,7 +8,7 @@ import joblib
 import numpy as np
 
 from concrete.ml.deployment import FHEModelServer
-from client_handler import FHEMedicalClient
+from nlp import extract_valid_symptoms, create_feature_vector
 
 # Initialize logging
 logging.basicConfig(level=logging.DEBUG)
@@ -38,6 +38,7 @@ except Exception as e:
     logger.error(f"FATAL ERROR: Failed to initialize XGB FHE Server - {str(e)}")
     raise SystemExit(1)
 
+
 ############################
 # 2. (Optional) Load Plaintext Models
 ############################
@@ -60,9 +61,11 @@ except Exception as e:
 # For plaintext inference, we also need the label encoder and symptom columns
 try:
     le = joblib.load('/home/isaacng33/individual_project/streamlit_app/artifacts/label_encoder.pkl')
+    symptom_columns = joblib.load('/home/isaacng33/individual_project/streamlit_app/artifacts/symptom_columns.pkl')
 except Exception as e:
     logger.warning(f"Could not load label encoder or symptom columns: {e}")
     le = None
+    symptom_columns = None
 
 
 ############################
@@ -190,22 +193,21 @@ def predict_encrypted():
 @app.route('/predict_plaintext', methods=['POST'])
 def predict_plaintext():
     """
-    Handle plaintext diagnosis requests for one or more models, where the feature vector
-    is already computed client-side.
+    Handle plaintext diagnosis requests using clinical text input for one or more models.
 
     Expects JSON: {
-      'feature_vector': [float or int, ...],  # The processed symptom vector
+      'clinical_text': str,           # Raw clinical text to process
       'model_type': 'LR', 'XGB', or 'LR, XGB' etc.
     }
 
     Returns JSON: {
       'results': {
         'LR': {
-          'predictions': [...],         # list of [class, probability] pairs
-          'inference_time': float
+          'predictions': [[class, prob], ...],  # List of [class, probability] pairs
+          'inference_time': float               # Time taken in seconds
         },
         'XGB': {
-          'predictions': [...],
+          'predictions': [[class, prob], ...],
           'inference_time': float
         }
       }
@@ -214,21 +216,31 @@ def predict_plaintext():
     try:
         data = request.json
 
-        # 1. Parse the feature vector
-        feature_vector = data.get('feature_vector')
-        if not feature_vector or not isinstance(feature_vector, list):
-            return jsonify({'error': 'Invalid or missing feature_vector'}), 400
-        
-        # 2. Parse the model_type string (could be "LR", "XGB", or "LR, XGB")
+        # 1. Extract clinical text from payload
+        clinical_text = data.get('clinical_text', '').strip()
+        if not clinical_text:
+            return jsonify({'error': 'Missing or empty clinical_text'}), 400
+
+        # 2. Process clinical text into symptoms using the NLP pipeline
+        symptoms = extract_valid_symptoms(clinical_text)
+        if not symptoms:
+            logger.warning(f"No valid symptoms extracted from text: {clinical_text}")
+
+        # 3. Convert symptoms to feature vector
+        if symptom_columns is None:
+            return jsonify({'error': 'Symptom columns not available on server'}), 500
+        feature_vector = create_feature_vector(symptoms)
+
+        # 4. Parse the model_type string
         model_type_str = data.get('model_type', '').strip()
         if not model_type_str:
             return jsonify({'error': 'Missing or empty model_type'}), 400
         requested_models = [m.strip() for m in model_type_str.split(',')]
 
-        # We'll store the results for each requested model in a dict
+        # 5. Store results for each requested model
         all_results = {}
 
-        # 3. For each model in the request, do a plaintext prediction
+        # 6. Perform predictions for each model
         for mt in requested_models:
             if mt == 'LR':
                 if lr_plain_model is None:
@@ -240,18 +252,17 @@ def predict_plaintext():
                 model = xgb_plain_model
             else:
                 return jsonify({'error': f'Unsupported model type: {mt}'}), 400
-            
-            # 4. Predict probabilities
+
+            # Predict probabilities
             start_time = time.time()
             probs = model.predict_proba(feature_vector)
             end_time = time.time()
 
-            # 5. Sort & format results
+            # Format results
             decoded_classes = le.inverse_transform(model.classes_)
             predicted_results = list(zip(decoded_classes, probs[0]))
             predicted_results.sort(key=lambda x: x[1], reverse=True)
 
-            # 6. Add to our response dictionary
             all_results[mt] = {
                 'predictions': predicted_results,
                 'inference_time': end_time - start_time
@@ -264,14 +275,13 @@ def predict_plaintext():
         return jsonify({'error': f"Plaintext prediction failed: {str(e)}"}), 500
 
 
+
 if __name__ == '__main__':
     try:
         logger.info("Starting Flask server...")
         app.run(
             host='0.0.0.0', 
             port=5000, 
-            debug=True,  # Enable debug mode
-            use_reloader=False  # Disable reloader for FHE compatibility
         )
     except Exception as e:
         logger.error(f"Server crashed: {str(e)}")

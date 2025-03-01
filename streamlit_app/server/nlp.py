@@ -3,6 +3,7 @@ import medspacy
 from medspacy.ner import TargetRule
 from spellchecker import SpellChecker
 from rapidfuzz import process, fuzz
+import numpy as np
 
 # Load medspacy pipeline (which already includes context processing)
 nlp = medspacy.load()
@@ -17,6 +18,16 @@ target_rules = []
 for symptom in valid_symptoms:
     target_rules.append(TargetRule(literal=symptom, category="SYMPTOM"))
 target_matcher.add(target_rules)
+
+# Helper Function for Plaintext Inference
+def create_feature_vector(input_symptoms):
+    """Create numpy feature vector from symptoms"""
+    features = np.zeros(len(symptom_columns), dtype=np.float32)
+    for symptom in input_symptoms:
+        if symptom in symptom_columns:
+            idx = symptom_columns.index(symptom)
+            features[idx] = 1
+    return features.reshape(1, -1)
 
 def correct_typos(input_text: str) -> str:
     """

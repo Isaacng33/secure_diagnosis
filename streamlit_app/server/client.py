@@ -9,9 +9,9 @@ from client_handler import FHEMedicalClient
 SERVER_URL = "http://127.0.0.1:5000"
 
 DUMMY_TEXT = (
-    "I have no headachees but I do have a fevver and depression. "
-    "I do experience anxiety as well as abnormal involuntary movements. "
-    "I dont feel shortness of breath as well."
+    "I have no headachees but I do have a fevver and depression "
+    "I do experience anxiety as well as abnormal involuntary movements "
+    "I dont feel shortness of breath as well"
 )
 
 CHECKMARK = "\u2705"  # ✅
@@ -45,13 +45,11 @@ def test_lr_xgb_combined():
     1) Clear old keys.
     2) /init_session -> server returns session_id (no keys loaded on server).
     3) Locally, create two FHEMedicalClient objects: lr_client, xgb_client.
-    4) Generate or load public/eval keys from each client (these are 'public_key_lr' and 'public_key_xgb').
-    5) Do local NLP for both, encrypt symptom vectors with each model's keys -> ciphertext_lr, ciphertext_xgb.
-    6) POST /predict_encrypted with model_type='LR, XGB', and pass:
-         encrypted_data_lr, public_key_lr
-         encrypted_data_xgb, public_key_xgb
+    4) Generate or load public/eval keys from each client.
+    5) Do local NLP for both, encrypt symptom vectors -> ciphertext_lr, ciphertext_xgb.
+    6) POST /predict_encrypted with model_type='LR, XGB'.
     7) Decrypt the combined results from the server.
-    8) Plaintext compare with /predict_plaintext, model_type='LR, XGB'.
+    8) Plaintext compare with /predict_plaintext, sending clinical text directly.
     """
     try:
         print("\n=== Starting Combined LR & XGB FHE Test ===")
@@ -74,7 +72,7 @@ def test_lr_xgb_combined():
             return False
         print_success(f"Session initialized: {session_id[:8]}")
 
-        # 3. Create LR & XGB clients on the client side
+        # 3. Create LR & XGB clients
         lr_client = FHEMedicalClient(session_id, "LR")
         xgb_client = FHEMedicalClient(session_id, "XGB")
 
@@ -101,12 +99,8 @@ def test_lr_xgb_combined():
         enc_payload = {
             "session_id": session_id,
             "model_type": "LR, XGB",
-
-            # LR
             "encrypted_data_lr": base64.b64encode(ciphertext_lr).decode("utf-8"),
             "public_key_lr": base64.b64encode(pub_key_lr).decode("utf-8"),
-
-            # XGB
             "encrypted_data_xgb": base64.b64encode(ciphertext_xgb).decode("utf-8"),
             "public_key_xgb": base64.b64encode(pub_key_xgb).decode("utf-8")
         }
@@ -123,9 +117,8 @@ def test_lr_xgb_combined():
 
         # 7a. Decrypt LR result
         lr_info = enc_data["LR"]
-        lr_enc_result_b64 = lr_info["encrypted_result"]
+        lr_enc_result = base64.b64decode(lr_info["encrypted_result"])
         lr_inference_time = lr_info["inference_time"]
-        lr_enc_result = base64.b64decode(lr_enc_result_b64)
         lr_preds = lr_client.decrypt_result(lr_enc_result)
         if not lr_preds:
             print_fail("No LR encrypted predictions returned.")
@@ -138,9 +131,8 @@ def test_lr_xgb_combined():
 
         # 7b. Decrypt XGB result
         xgb_info = enc_data["XGB"]
-        xgb_enc_result_b64 = xgb_info["encrypted_result"]
+        xgb_enc_result = base64.b64decode(xgb_info["encrypted_result"])
         xgb_inference_time = xgb_info["inference_time"]
-        xgb_enc_result = base64.b64decode(xgb_enc_result_b64)
         xgb_preds = xgb_client.decrypt_result(xgb_enc_result)
         if not xgb_preds:
             print_fail("No XGB encrypted predictions returned.")
@@ -151,13 +143,10 @@ def test_lr_xgb_combined():
             print(f"   {disease}: {prob*100:.2f}%")
         print_success(f"XGB FHE server inference time: {xgb_inference_time:.3f}s")
 
-        # 8. Plaintext Inference
+        # 8. Plaintext Inference with clinical text
         print("\n[6] /predict_plaintext => 'LR, XGB' for comparison")
-        pt_symptoms = lr_client.nlp_process(DUMMY_TEXT)
-        pt_feature_vec = lr_client._create_feature_vector(pt_symptoms).tolist()
-
         pt_payload = {
-            "feature_vector": pt_feature_vec,
+            "clinical_text": DUMMY_TEXT,
             "model_type": "LR, XGB"
         }
         resp_pt = requests.post(f"{SERVER_URL}/predict_plaintext", json=pt_payload)

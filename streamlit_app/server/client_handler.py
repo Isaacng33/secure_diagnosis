@@ -1,7 +1,6 @@
 from concrete.ml.deployment import FHEModelClient
 from pathlib import Path
 import numpy as np
-import os
 import joblib
 from nlp import extract_valid_symptoms
 from concrete.ml.common.serialization.loaders import load
