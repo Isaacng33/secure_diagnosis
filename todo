@@ -15,3 +15,8 @@
 3. Model Intepretability
     Showcase the feature coefficients to show which symptom influence the prediction
     to get Top contributing key symptoms
+
+
+Current worklist
+1) Build Streamlit app/ui
+2) build XGBoost/Inference XGBoost
