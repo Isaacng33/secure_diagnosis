@@ -1,6 +1,7 @@
 Plaintext LR Evaluation Metrics:
 -------------------
 Training Time      : 1197.8424 seconds
+Compile Time       : 0.0000 seconds
 Prediction Time    : 1.6271 seconds
 Memory Usage       : 3211.27 MB
 Accuracy           : 0.8655

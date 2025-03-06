@@ -1,22 +1,16 @@
-1. Build Frontend UI for side by side comparison
-    Compare Plaintext vs. Encrypted Inference
-    Viewing Ciphertext on UI
-    View Graphs of Latency/Execution Time
-        Time to encrypt feature vector
-        Time to perform the encrypted inference
-        Time to decrypt result
-        Plaintext inference time
-    Output Comparsion
-        Disease predictions from all models (top-k diseases + probability)
-2. Exploring multiple ML methods compataible iwth the dataset
-    XGBoost
-    Neural Network
-    
-3. Model Intepretability
-    Showcase the feature coefficients to show which symptom influence the prediction
-    to get Top contributing key symptoms
+Main Plan
+Work solely on logistic regression but with additional security such as
+having 4 different models 
+1) Plaintext Model with no FHE Inference
+2) Encrypted Model trained on clear data
+3) Encrypted Model trained on encrypted data (Not possible because concrete ml dont support multi class)
+4) Encrypted Model trained on clear data with differential privacy + Play around with parameters
+5) Build Dashboard to shows the performance metrics of each model
+6) GridSearch to find the optimised parameter for a 5 privady budget
+7) Add LG_DP into streamlit once the optimise parameter is done
 
+8) Perform Metric testing on privacy of non dp and dp model
+9) Improve NLP Pipeline
 
-Current worklist
-1) Build Streamlit app/ui
-2) build XGBoost/Inference XGBoost
+If i have time i will implement Neural Network
+

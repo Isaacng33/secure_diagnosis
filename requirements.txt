@@ -12,3 +12,6 @@ medspacy
 flask
 xgboost
 streamlit
+rapidfuzz
+torch
+opacus
