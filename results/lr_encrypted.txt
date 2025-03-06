@@ -1,6 +1,7 @@
 FHE LR Evaluation Metrics for Encrypted Model:
 -----------------------------------------------
-Compile Time      : 237.2385 seconds
+Training Time      : 1197.8424 seconds
+Compile Time       : 237.2385 seconds
 Prediction Time    : 20063.5612 seconds
 Accuracy           : 0.8655
 Precision          : 0.8735

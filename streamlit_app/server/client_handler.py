@@ -13,17 +13,19 @@ class FHEMedicalClient:
         
         Args:
             session_id (str): Unique identifier for the session.
-            model_type (str): Type of model to use ('LR' for Logistic Regression, 'XGB' for XGBoost).
+            model_type (str): Type of model to use ('LR' for Logistic Regression, 'DP' for Differentially Private LR).
         """
         self.session_id = session_id
-        if model_type =='LR':
+        if model_type == 'LR':
             self.path_dir = Path('/home/isaacng33/individual_project/streamlit_app/artifacts/encrypted/LR/')
             self.key_dir = Path(f'/home/isaacng33/individual_project/streamlit_app/client_storage/client_keys/LR/{session_id}')
-        elif model_type == 'XGB':
-            self.path_dir = Path('/home/isaacng33/individual_project/streamlit_app/artifacts/encrypted/XGB/')
-            self.key_dir = Path(f'/home/isaacng33/individual_project/streamlit_app/client_storage/client_keys/XGB/{session_id}')
+            self.class_labels_path = '/home/isaacng33/individual_project/streamlit_app/artifacts/models/compiled_lr_model.json'
+        elif model_type == 'DP':
+            self.path_dir = Path('/home/isaacng33/individual_project/streamlit_app/artifacts/encrypted/DP/')
+            self.key_dir = Path(f'/home/isaacng33/individual_project/streamlit_app/client_storage/client_keys/DP/{session_id}')
+            self.class_labels_path = '/home/isaacng33/individual_project/streamlit_app/artifacts/models/compiled_dp_lr_model.json'
         else:
-            raise ValueError("Unsupported model type. Use 'LR' or 'XGB'.")
+            raise ValueError("Unsupported model type. Use 'LR' or 'DP'.")
         
         # Initialize FHEModelClient
         self.client = FHEModelClient(
@@ -35,13 +37,8 @@ class FHEMedicalClient:
         self.le = joblib.load('/home/isaacng33/individual_project/streamlit_app/artifacts/label_encoder.pkl')
 
         # Load model class labels
-        if model_type == 'LR':
-            self.class_labels_path = '/home/isaacng33/individual_project/streamlit_app/artifacts/models/compiled_lr_model.json'
-        elif model_type == 'XGB':
-            self.class_labels_path = '/home/isaacng33/individual_project/streamlit_app/artifacts/models/compiled_xgb_model.json'
-
-        self.class_lables = Path(self.class_labels_path)
-        with self.class_lables.open('r') as f:
+        self.class_labels_file = Path(self.class_labels_path)
+        with self.class_labels_file.open('r') as f:
             self.model = load(f)
 
     def load_eval_keys(self):
