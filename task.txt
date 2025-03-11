@@ -1,0 +1,14 @@
+Completed List
+- Develop Basic NLP Pipelien to extract symptoms
+- Build a Plaintext Model with no FHE Inference
+- Perform FHE Inference on Plaintext Model 
+- Attempted Training on encrypted data but it's not possible because Concrete ML only supports binary classification
+- Build a Plaintext Model with Differential privacy 
+- Perform FHE Inference on the DP Model
+- Perform GridSearch to find optimised paramters for privacy budget of 0 to 5
+- Built Streamlit Application for displaying workflow, performance metrics and privacy optimised parameters
+
+TODO List
+- Improve NLP Pipeline for better accuracy and reliability
+- Test Privacy on DP and Non DP Model
+- Neural Network
