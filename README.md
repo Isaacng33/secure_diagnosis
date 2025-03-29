@@ -7,10 +7,10 @@ This project demonstrates a privacy-preserving healthcare diagnosis system that 
 The project includes three models:
 - **Plaintext Logistic Regression:**  
   A baseline model trained on structured symptom data.
-- **Encrypted Plaintext Logistic Regression:**  
-  A model that can take in plaintext but its train on encrypted data
 - **FHE Inference Model:**  
   A compiled FHE model (using Concrete ML) that performs inference on encrypted inputs.
+- **FHE Inference Differential Privacy Model:**  
+  A compiled FHE model (using Concrete ML) that performs inference on encrypted inputs trained with DP.
 
 ## Features
 - **NLP-Driven Symptom Extraction:**  
