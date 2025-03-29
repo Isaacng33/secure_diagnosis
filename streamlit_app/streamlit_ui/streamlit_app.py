@@ -6,7 +6,8 @@ import os
 import sys
 import pandas as pd
 import plotly.express as px
-import numpy as np
+import json
+import re
 
 # Add server directory to path
 THIS_FILE_DIR = os.path.dirname(__file__)
@@ -31,7 +32,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Dark theme CSS overrides
+# Dark theme CSS overrides (unchanged)
 st.markdown(
     """
     <style>
@@ -89,7 +90,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Make sure session is initialized
+# Session initialization (unchanged)
 if "session_id" not in st.session_state:
     with st.spinner("Initializing session..."):
         resp = requests.post(f"{SERVER_URL}/init_session")
@@ -102,12 +103,12 @@ if "session_id" not in st.session_state:
 session_id = st.session_state.session_id
 
 # ------------------------------------------------------------------------------
-# Create two tabs: 1) Workflow, 2) Performance Dashboard
+# Create three tabs
 # ------------------------------------------------------------------------------
-tab1, tab2 = st.tabs(["Workflow", "Performance Dashboard"])
+tab1, tab2, tab3 = st.tabs(["Workflow", "Performance Dashboard", "Privacy Insights"])
 
 # ------------------------------------------------------------------------------
-# TAB 1: Encrypted Diagnosis Workflow
+# TAB 1: Encrypted Diagnosis Workflow (unchanged)
 # ------------------------------------------------------------------------------
 with tab1:
     st.header("Encrypted Diagnosis Workflow")
@@ -122,6 +123,24 @@ with tab1:
         use_lr = st.checkbox("Logistic Regression (LR)", value=True)
         use_dp = st.checkbox("Differentially Private LR (DP)", value=True)
         process_button = st.button("Process")
+
+    # Educational Expander (unchanged)
+    with st.expander("How does this work?"):
+        st.markdown("""
+        This application uses **Fully Homomorphic Encryption (FHE)** to ensure data privacy during medical diagnosis. Here's the complete data flow and client-side architecture:
+
+        - **Symptom Extraction:** The process begins on the client side, where Natural Language Processing (NLP) extracts symptoms from the clinical text you enter (e.g., "fever" or "depression").
+        - **Client-Side Encryption:** The extracted symptoms are encrypted using FHE directly on your device. Encryption keys are generated and stored locally on the client side, meaning they never leave your machine. This ensures that only encrypted data is transmitted, keeping your sensitive information secure.
+        - **Encrypted Data Transmission:** The encrypted symptoms (ciphertext) are sent to the server over a secure connection. Since the server only receives encrypted data and does not have access to the keys, it cannot decrypt or view the plaintext information.
+        - **Server-Side Encrypted Inference:** On the server, a machine learning model (e.g., Logistic Regression or Differentially Private LR) performs predictions directly on the encrypted data using FHE. This computation happens without ever decrypting the data, preserving privacy throughout the process.
+        - **Encrypted Results Return:** The server sends the encrypted predictions back to the client. These results remain encrypted during transmission.
+        - **Client-Side Decryption:** Finally, the predictions are decrypted on your device using the locally stored encryption keys. The decrypted results match what would be obtained from plaintext inference, ensuring accuracy while maintaining privacy.
+
+        **Key Points:**
+        - **Client-Side Key Management:** Encryption keys are generated and stored exclusively on the client side, ensuring the server never sees them.
+        - **Privacy Guarantee:** Only encrypted text is sent to the server, making it impossible for anyone intercepting the data or the server itself to access your raw medical information.
+        - **End-to-End Security:** From symptom extraction to result decryption, your data remains private and secure.
+        """)
 
     if process_button:
         if not clinical_text:
@@ -321,12 +340,12 @@ with tab1:
             st.info("Note: Encrypted inference times are higher due to FHE's overhead, ensuring data privacy.")
 
 # ------------------------------------------------------------------------------
-# TAB 2: Performance Dashboard
+# TAB 2: Performance Dashboard (unchanged)
 # ------------------------------------------------------------------------------
 with tab2:
     st.header("Performance Dashboard")
 
-    # 1) Paths to your new .txt results
+    # 1) Paths to your new .txt results (Update these paths based on your local setup)
     model_paths = {
         "LR Baseline": "/home/isaacng33/individual_project/streamlit_app/artifacts/results/lr_baseline.txt",
         "LR DP (Plain)": "/home/isaacng33/individual_project/streamlit_app/artifacts/results/lr_dp_plain.txt",
@@ -369,50 +388,27 @@ with tab2:
     else:
         # Display metrics in a simple table
         st.subheader("Summary Metrics")
-        # Round all numeric columns to 3 decimal places for cleaner display
         rounded_df = df.round(3)
         st.table(rounded_df)
-        
+
         # Second row of visualizations
         cols = st.columns(2)
-        
-        # 1. Total Time Chart (Bar)
+
+        # 1. Stacked Bar Chart for Total Build Time
         with cols[0]:
             st.markdown('<div class="card">', unsafe_allow_html=True)
             st.subheader("Total Build Time")
-            
-            fig = px.bar(
-                df,
-                x="Model",
-                y="Total Time (s)",
-                title="Training + Compile Time by Model",
-                color="Total Time (s)",
-                color_continuous_scale="Blues",
-                height=300,
-                text=df["Total Time (s)"].apply(lambda x: f"{x:.2f}s")
-            )
-            
-            fig.update_layout(
-                xaxis_title="",
-                yaxis_title="Time (seconds)",
-                hovermode="x unified",
-                hoverlabel=dict(bgcolor="white", font_size=14),
-                margin=dict(l=40, r=20, t=40, b=20)
-            )
-            
-            # Simplified hover labels
-            fig.update_traces(
-                hovertemplate="Model: %{x}<br>Time: %{y:.3f}s"
-            )
-            
-            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+            fig = px.bar(df, x="Model", y=["Training Time (s)", "Compile Time (s)"],
+                         title="Training + Compile Time by Model", height=300,
+                         text=df["Total Time (s)"].apply(lambda x: f"{x:.2f}s"))
+            fig.update_layout(barmode="stack", yaxis_title="Time (seconds)", xaxis_title="")
+            st.plotly_chart(fig, use_container_width=True)
             st.markdown('</div>', unsafe_allow_html=True)
-        
+
         # 2. Prediction Time (Log Bar)
         with cols[1]:
             st.markdown('<div class="card">', unsafe_allow_html=True)
             st.subheader("Prediction Time (Log Scale)")
-            
             fig = px.bar(
                 df,
                 x="Model",
@@ -423,41 +419,24 @@ with tab2:
                 height=300,
                 text=df["Prediction Time (s)"].apply(lambda x: f"{x:.3f}s")
             )
-            
             fig.update_layout(
                 xaxis_title="",
                 yaxis_title="Time (seconds)",
-                yaxis_type="log",  # Set log scale
+                yaxis_type="log",
                 hovermode="x unified",
                 hoverlabel=dict(bgcolor="white", font_size=14),
                 margin=dict(l=40, r=20, t=40, b=20)
             )
-            
-            # Simplified hover labels
-            fig.update_traces(
-                hovertemplate="Model: %{x}<br>Time: %{y:.4f}s"
-            )
-            
+            fig.update_traces(hovertemplate="Model: %{x}<br>Time: %{y:.4f}s")
             st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
             st.markdown('</div>', unsafe_allow_html=True)
-        
+
         # 3. Performance Metrics Detail
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.subheader("Performance Metrics Breakdown")
-        
-        # Create a grouped bar chart with plotly
         perf_cols = ["Accuracy", "Precision", "Recall", "F1 Score"]
         df_perf = df[["Model"] + perf_cols].copy()
-        
-        # Melt the DataFrame to get it in the right format for Plotly
-        df_perf_melt = pd.melt(
-            df_perf,
-            id_vars=["Model"],
-            value_vars=perf_cols,
-            var_name="Metric",
-            value_name="Value"
-        )
-        
+        df_perf_melt = pd.melt(df_perf, id_vars=["Model"], value_vars=perf_cols, var_name="Metric", value_name="Value")
         fig = px.bar(
             df_perf_melt,
             x="Model",
@@ -468,33 +447,106 @@ with tab2:
             height=350,
             text=df_perf_melt["Value"].apply(lambda x: f"{x:.2f}")
         )
-        
         fig.update_layout(
             xaxis_title="",
             yaxis_title="Metric Value",
             yaxis_range=[0, 1.05],
-            legend=dict(
-                orientation="h",
-                yanchor="bottom",
-                y=1.02,
-                xanchor="center",
-                x=0.5
-            ),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
             margin=dict(l=40, r=20, t=60, b=20),
             hovermode="x unified"
         )
-        
-        # Simplified hover labels
-        fig.update_traces(
-            hovertemplate="Model: %{x}<br>Metric: %{marker.color}<br>Value: %{y:.3f}"
-        )
-        
+        fig.update_traces(hovertemplate="Model: %{x}<br>Metric: %{marker.color}<br>Value: %{y:.3f}")
         st.plotly_chart(fig, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Explanation
+
+        # 4. Model Comparison Feature
+        st.subheader("Compare Models")
+        col1, col2 = st.columns(2)
+        model_options = df["Model"].tolist()
+        with col1:
+            model_a = st.selectbox("Select Model A", model_options, index=0)
+        with col2:
+            model_b = st.selectbox("Select Model B", model_options, index=1)
+
+        if model_a != model_b:
+            comparison_df = df[df["Model"].isin([model_a, model_b])]
+            st.table(comparison_df.set_index("Model").T)
+        else:
+            st.warning("Please select two different models to compare.")
+
+        # Educational Expander for Metrics (unchanged)
+        with st.expander("What do these metrics mean?"):
+            st.markdown("""
+            Here’s an explanation of the performance metrics displayed in the dashboard:
+
+            - **Accuracy:** The proportion of correct predictions made by the model out of all predictions. It’s a general measure of how often the model is right.
+            - **Precision:** The accuracy of positive predictions, showing how many of the predicted positive cases (e.g., a disease) are actually correct. High precision means fewer false positives.
+            - **Recall:** The model’s ability to identify all actual positive cases. High recall means fewer false negatives, which is crucial in medical diagnosis to avoid missing cases.
+            - **F1 Score:** The harmonic mean of precision and recall, providing a single score that balances both metrics. It’s useful when you need a trade-off between precision and recall.
+
+            These metrics help evaluate how well the models perform, especially in medical applications where both identifying true cases (recall) and avoiding false alarms (precision) are important.
+            """)
+
         st.info(
             "This dashboard shows performance metrics across models. Hover over chart elements to see "
             "detailed values. The bar charts show time and classification performance metrics. "
             "Note the log scale on prediction time for better visibility."
         )
+
+# ------------------------------------------------------------------------------
+# TAB 3: Privacy Insights (Updated)
+# ------------------------------------------------------------------------------
+with tab3:
+    st.header("Privacy Insights")
+
+    # File Paths (hardcoded for now based on your input)
+    best_configs_file = "/home/isaacng33/individual_project/streamlit_app/artifacts/model_parameter/dp_best_configs_20250306_210837.json"
+    results_file = "/home/isaacng33/individual_project/streamlit_app/artifacts/model_parameter/dp_grid_search_results_20250306_210837.csv"
+
+    # Load best configurations
+    with open(best_configs_file, 'r') as f:
+        best_configs = json.load(f)
+
+    # Load grid search results
+    df = pd.read_csv(results_file)
+
+    # Add rounded_epsilon column
+    df['rounded_epsilon'] = df['epsilon'].apply(lambda x: int(round(x)))
+
+    # Educational text
+    st.markdown("""
+    ### How This Model Was Optimized
+    This dashboard showcases a differentially private logistic regression model optimized via **grid search**. We tested combinations of parameters to balance privacy (measured by ε, the privacy budget) and accuracy. Lower ε values indicate stronger privacy but may reduce accuracy due to added noise.
+
+    #### Parameter Explanations
+    - **Noise Multiplier:** Higher values increase privacy (lower ε) but add more noise, potentially reducing accuracy.
+    - **Batch Size:** Larger sizes can stabilize training but increase ε, affecting privacy.
+    - **Epochs:** More epochs may improve accuracy but can increase ε, weakening privacy.
+    - **Max Gradient Norm:** Fixed at 1.0, caps gradient size for privacy.
+    - **Learning Rate:** Scales with batch size (LR = 0.1 * (batch_size / 64)), influencing convergence speed.
+
+    Use the controls below to explore the trade-offs between privacy and accuracy.
+    """)
+
+    # Section 1: Privacy Budget Selection
+    st.write("### Select Privacy Budget")
+    selected_epsilon = st.selectbox("Choose ε (Privacy Budget)", options=[0, 1, 2, 3, 4, 5], index=0)
+
+    # Find the best configuration for the selected epsilon
+    best_config = None
+    for eps, config in best_configs.items():
+        if int(eps) == selected_epsilon and config['params']:
+            best_config = config
+            break
+    if best_config:
+        st.markdown(f"#### Optimized Parameters for ε = {selected_epsilon}")
+        st.write(f"- **Accuracy**: {best_config['accuracy']:.4f}")
+        st.write(f"- **Noise Multiplier**: {best_config['params']['noise_multiplier']}")
+        st.write(f"- **Batch Size**: {best_config['params']['batch_size']}")
+        st.write(f"- **Epochs**: {best_config['params']['epochs']}")
+        st.write(f"- **Max Grad Norm**: {best_config['params']['max_grad_norm']}")
+        st.write(f"- **Learning Rate**: {best_config['params']['learning_rate']:.2f}")
+    else:
+        st.warning(f"No optimized configuration found for ε = {selected_epsilon}")
+    # Note about learning rate
+    st.write("**Note:** The learning rate is calculated as 0.1 * (batch_size / 64), scaling with batch size.")

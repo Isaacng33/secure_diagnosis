@@ -54,3 +54,6 @@ predicted_results.sort(key=lambda x: x[1], reverse=True)
 print("Top predicted classes (from FHE inference):")
 for disease, probability in predicted_results[:3]:
     print(f"{disease}: {(probability*100):.2f}%")
+
+print(model.coef_)
+print(model.intercept_)
