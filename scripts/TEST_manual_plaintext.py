@@ -5,9 +5,6 @@ from TOOLS_create_vec import create_feature_vector
 model = joblib.load('./models/final_logistic_model.pkl')
 le = joblib.load('./models/label_encoder.pkl')
 
-# Load XGBoost model and Label Encoder.
-xgb_model = joblib.load('./models/final_xgb_model.pkl')
-xgb_le = joblib.load('./models/xgb_label_encoder.pkl')
 
 # Get User input
 input_symptoms = [
@@ -22,13 +19,9 @@ input_symptoms = [
 input_vector = create_feature_vector(input_symptoms)
 
 # Predict the disease using the trained model (Top 3 Probability Classes).
-count = 1
-if count == 1:
-    predicted_proba = model.predict_proba(input_vector)
-    decoded_classes = le.inverse_transform(model.classes_)
-else:
-    predicted_proba = xgb_model.predict_proba(input_vector)
-    decoded_classes = xgb_le.inverse_transform(xgb_model.classes_)
+predicted_proba = model.predict_proba(input_vector)
+decoded_classes = le.inverse_transform(model.classes_)
+
 
 predicted_results = list(zip(decoded_classes, predicted_proba[0]))
 predicted_results.sort(key=lambda x: x[1], reverse=True)
@@ -37,3 +30,6 @@ predicted_results.sort(key=lambda x: x[1], reverse=True)
 print("Top 3 Predicted Diseases:")
 for disease, probability in predicted_results[:3]:
     print(f"{disease}: {(probability*100):.2f}%")
+
+print(model.coef_)
+print(model.intercept_)

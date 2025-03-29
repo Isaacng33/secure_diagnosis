@@ -6,15 +6,15 @@ from concrete.ml.deployment import FHEModelClient, FHEModelServer
 from concrete.ml.common.serialization.loaders import load
 from TOOLS_create_vec import create_feature_vector
 
-fhe_model_path = Path('./models/compiled_lr_model.json')
+fhe_model_path = Path('/home/isaacng33/individual_project/models/compiled_dp_lr_model.json')
 with fhe_model_path.open('r') as f:
     model = load(f)
 le = joblib.load('./models/label_encoder.pkl')
 symptom_columns = joblib.load('./models/symptom_columns.pkl')
 
 # Load Artifacts: Model and Keys
-encrypted_model_path = "./data/encrypted/LR/"
-key_path = "./data/keys/LR/"
+encrypted_model_path = "./data/encrypted/DP/"
+key_path = "./data/keys/DP/"
 os.makedirs(key_path, exist_ok=True)
 
 # Initialize the FHE Model Client
