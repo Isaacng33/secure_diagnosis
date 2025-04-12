@@ -66,21 +66,28 @@ def evaluate_mia(predictions, true_labels):
 
 # Evaluate non-DP model attack
 non_dp_accuracy, non_dp_precision, non_dp_recall = evaluate_mia(non_dp_predictions, membership_labels)
-print("Non-DP Model MIA Results:")
-print(f"Accuracy: {non_dp_accuracy:.4f}")
-print(f"Precision: {non_dp_precision:.4f}")
-print(f"Recall: {non_dp_recall:.4f}\n")
 
 # Evaluate DP model attack
 dp_accuracy, dp_precision, dp_recall = evaluate_mia(dp_predictions, membership_labels)
-print("DP Model MIA Results:")
-print(f"Accuracy: {dp_accuracy:.4f}")
-print(f"Precision: {dp_precision:.4f}")
-print(f"Recall: {dp_recall:.4f}\n")
 
-# Step 4: Compare average confidence scores
-print("Average Confidence Scores:")
-print(f"Non-DP Model - Training Data: {np.mean(non_dp_probs[:n_attack_samples]):.4f}")
-print(f"Non-DP Model - Test Data: {np.mean(non_dp_probs[n_attack_samples:]):.4f}")
-print(f"DP Model - Training Data: {np.mean(dp_probs[:n_attack_samples]):.4f}")
-print(f"DP Model - Test Data: {np.mean(dp_probs[n_attack_samples:]):.4f}")
+# Save this to result folder
+result_dir = '/home/isaacng33/individual_project/results'
+result_file = os.path.join(result_dir, 'mia_results.txt')
+
+with open(result_file, 'w') as f:
+    f.write("Non-DP Model MIA Results:\n")
+    f.write(f"Accuracy: {non_dp_accuracy:.4f}\n")
+    f.write(f"Precision: {non_dp_precision:.4f}\n")
+    f.write(f"Recall: {non_dp_recall:.4f}\n\n")
+
+    f.write("DP Model MIA Results:\n")
+    f.write(f"Accuracy: {dp_accuracy:.4f}\n")
+    f.write(f"Precision: {dp_precision:.4f}\n")
+    f.write(f"Recall: {dp_recall:.4f}\n\n")
+
+    f.write("Average Confidence Scores:\n")
+    f.write(f"Non-DP Model - Training Data: {np.mean(non_dp_probs[:n_attack_samples]):.4f}\n")
+    f.write(f"Non-DP Model - Test Data: {np.mean(non_dp_probs[n_attack_samples:]):.4f}\n")
+    f.write(f"DP Model - Training Data: {np.mean(dp_probs[:n_attack_samples]):.4f}\n")
+    f.write(f"DP Model - Test Data: {np.mean(dp_probs[n_attack_samples:]):.4f}\n")
+print(f"Results saved to {result_file}")

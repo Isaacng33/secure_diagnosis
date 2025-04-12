@@ -1,0 +1,15 @@
+Non-DP Model MIA Results:
+Accuracy: 0.4994
+Precision: 0.4996
+Recall: 0.8194
+
+DP Model MIA Results:
+Accuracy: 0.5037
+Precision: 0.5036
+Recall: 0.5198
+
+Average Confidence Scores:
+Non-DP Model - Training Data: 0.8193
+Non-DP Model - Test Data: 0.8187
+DP Model - Training Data: 0.5169
+DP Model - Test Data: 0.5087

@@ -11,9 +11,6 @@ input_symptoms = [
     'anxiety and nervousness', 
     'depression', 
     'shortness of breath', 
-    'depressive or psychotic symptoms', 
-    'dizziness', 
-    'insomnia', 
     'palpitations']
 
 input_vector = create_feature_vector(input_symptoms)

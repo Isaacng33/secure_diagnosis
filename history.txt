@@ -1,0 +1,33 @@
+*   c645cf8 Merge pull request #6 from Isaacng33/improved_nlp
+|\  
+| * aecdd19 MIA Simulation
+| * 5dbe699 updated streamlit
+|/  
+*   b627508 Merge pull request #5 from Isaacng33/xgboost
+|\  
+| * c09f884 complete streamlit app
+| * f8695d0 latest
+* | 98e5929 Merge pull request #4 from Isaacng33/nlp_foundation
+|\| 
+| * 39ddb5e working streamlit app
+| * c050df1 streamlit blueprint
+| * 3c0def1 small changes
+* | dc32839 Merge pull request #3 from Isaacng33/nlp_foundation
+|\| 
+| * 73a8454 finalise blueprint
+* | 7aa3f2e Update README.md
+* | c85ee85 Merge pull request #2 from Isaacng33/nlp_foundation
+|\| 
+| * 460a033 file cleanup
+| * afae633 working flask app
+| * 7a2ffba final NLP pipeline
+* | 98343b5 Merge pull request #1 from Isaacng33/nlp_foundation
+|\| 
+| * f0822a5 foundation of NLP pipeline
+* | 0fd03ce Update README.md
+|/  
+* fab976e updated readme
+*   1ed865d Merge branch 'master'
+|\  
+| * 53daddc working_model
+* a665701 Initial commit

@@ -3,6 +3,8 @@ import medspacy
 from medspacy.ner import TargetRule
 from spellchecker import SpellChecker
 from rapidfuzz import process, fuzz
+from medspacy.visualization import visualize_dep
+import webbrowser
 
 # Load medspacy pipeline (which already includes context processing)
 nlp = medspacy.load()
@@ -80,19 +82,63 @@ def extract_valid_symptoms(input_text: str) -> list:
     
     # Step 4: Extract entities labeled "SYMPTOM" that are not negated.
     final_symptoms = set()
+    entities = []
+    
     for ent in doc.ents:
-        if ent.label_ == "SYMPTOM" and not getattr(ent._, "is_negated", False):
-            final_symptoms.add(ent.text.lower())
+        is_negated = getattr(ent._, "is_negated", False)
+        if ent.label_ == "SYMPTOM":
+            # Add to symptoms list if not negated
+            if not is_negated:
+                final_symptoms.add(ent.text.lower())
+            
+            # Create visualization data
+            entities.append({
+                "start": ent.start_char,
+                "end": ent.end_char,
+                "label": ent.label_,
+                "negated": is_negated
+            })
+    
+    # Generate custom HTML visualization with negation colors
+    html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            .entity { padding: 0.25em; border-radius: 0.25em; }
+            .symptom { background: #7aecec; }
+            .negated { background: #ff9999; border: 2px solid #ff4d4d; }
+        </style>
+    </head>
+    <body>
+        <div style="margin: 1em; line-height: 2em;">
+    """
+    
+    text = doc.text
+    last_pos = 0
+    for ent in sorted(entities, key=lambda x: x["start"]):
+        html += text[last_pos:ent["start"]]
+        class_name = "negated" if ent["negated"] else "symptom"
+        html += f'<mark class="entity {class_name}">{text[ent["start"]:ent["end"]]}' \
+                f'<span style="font-size: 0.8em; margin-left: 0.5em;">{ent["label"]}' \
+                f'{" (NEGATED)" if ent["negated"] else ""}</span></mark>'
+        last_pos = ent["end"]
+    
+    html += text[last_pos:] + "</div></body></html>"
+    
+    # Save and open visualization
+    with open("negation_visualization.html", "w") as f:
+        f.write(html)
+    webbrowser.open("negation_visualization.html")
     
     return list(final_symptoms)
 
 if __name__ == "__main__":
     sample_text = (
-        "I have no headachees but I do have a fevver and depression. "
-        "I do experience anxiety as well as abnormal involuntary movements. "
-        "I have dont feel shortness of breath as well."
+        "I have a headache but no fever."
     )
     
     symptoms = extract_valid_symptoms(sample_text)
     print("Final Extracted Valid Symptoms:", symptoms)
+    
 
