@@ -25,12 +25,30 @@ The project includes three models:
 ### Prerequisites
 - Python 3.7 or later
 - [Concrete ML](https://github.com/zama-ai/concrete-ml) (install via `pip install concrete-ml`)
-- Other dependencies as listed in `requirements.txt`
+- Other dependencies as listed in `requirements.txt` (install via pip install -r requirements.txt)
 
 ### Installation
-**Clone the Repository:**
+**1. Clone the Repository:**
 ```bash
 git clone https://github.com/Isaacng33/secure_diagnosis.git
 cd secure_diagnosis
+```
 
+**2. Install Dependencies:**
+```bash
+pip install -r requirements.txt
+```
+
+**3. Direct into the streamlit_app/server folder and start the Flask server**
+```bash
+cd streamlit_app/server
+python app.py
+```
+
+**4. Direct into the streamlit_app/streamlit_ui folder**
+```bash
+cd streamlit_app/streamlit_ui
+streamlit run streamlit_app.py
+```
+**5. Head to the given local host link for the web application**
 
